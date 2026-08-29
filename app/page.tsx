@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import useSWR from "swr"
 import { Activity, Bell, ChevronDown, ChevronRight, Cloud, Download, File, FileArchive, FileCode2, FileImage, FileText, Folder, Grid2X2, HelpCircle, Home, LayoutList, Link2, MoreHorizontal, Search, Settings, Share2, ShieldCheck, Upload, Users } from "lucide-react"
 
 type FileKind = "PDF" | "PPTX" | "ZIP" | "PNG" | "JS"
@@ -18,9 +19,14 @@ function FileIcon({ kind }: { kind: FileKind }) { const Icon = kind === "PDF" ? 
 function StatCard({ label, value, meta, icon: Icon }: { label: string; value: string; meta: string; icon: typeof File }) { return <div className="stat-card"><div className="stat-icon"><Icon size={18} /></div><div><span>{label}</span><strong>{value}</strong><small>{meta}</small></div></div> }
 function ActivityRow({ icon: Icon, title, detail, time }: { icon: typeof Upload; title: string; detail: string; time: string }) { return <div className="activity-row"><span className="activity-icon"><Icon size={16} /></span><div><p><strong>{title}</strong> {detail}</p><span>{time}</span></div></div> }
 
+const fetcher = (url: string) => fetch(url).then((response) => response.json())
+
 export default function HomePage() {
   const [query, setQuery] = useState(""); const [view, setView] = useState<"list" | "grid">("list"); const [activeNav, setActiveNav] = useState("Dashboard"); const [notice, setNotice] = useState("")
-  const filteredFiles = useMemo(() => files.filter((file) => file.name.toLowerCase().includes(query.toLowerCase())), [query])
+  const { data: fileData } = useSWR<{ files: Array<{ id: string; name: string; size: number; mimeType: string; createdAt: string }> }>("/api/files", fetcher)
+  const apiFiles: SharedFile[] = (fileData?.files ?? []).map((file) => ({ name: file.name, kind: file.name.split(".").pop()?.toUpperCase() as FileKind || "PDF", owner: "You", updated: new Date(file.createdAt).toLocaleDateString(), size: `${(file.size / 1024 / 1024).toFixed(1)} MB`, shared: "Private" }))
+  const visibleFiles = fileData ? apiFiles : files
+  const filteredFiles = useMemo(() => visibleFiles.filter((file) => file.name.toLowerCase().includes(query.toLowerCase())), [query, visibleFiles])
   function showNotice(message: string) { setNotice(message); window.setTimeout(() => setNotice(""), 2200) }
   return <main className="app-shell">
     <aside className="sidebar" aria-label="Primary navigation"><div className="brand"><span className="brand-mark"><Cloud size={19} /></span><span>CloudShare</span></div><nav className="nav-list">{navItems.map(({ label, icon: Icon }) => <button key={label} className={`nav-item ${activeNav === label ? "active" : ""}`} onClick={() => { setActiveNav(label); showNotice(`${label} selected`) }}><Icon size={18} /><span>{label}</span></button>)}</nav><div className="sidebar-spacer" /><div className="storage-card"><div className="storage-heading"><span>Storage</span><span>12%</span></div><div className="progress"><span /></div><p>12.4 GB of 100 GB used</p><button onClick={() => showNotice("Upgrade options opened")}>Upgrade storage <ChevronRight size={14} /></button></div><div className="nav-footer"><button className="nav-item" onClick={() => showNotice("Help center opened")}><HelpCircle size={18} /><span>Help &amp; Support</span></button><button className="nav-item" onClick={() => showNotice("Settings opened")}><Settings size={18} /><span>Settings</span></button><div className="profile"><div className="avatar">SS</div><div><strong>Sathish</strong><span>Free plan</span></div><MoreHorizontal size={18} /></div></div></aside>
