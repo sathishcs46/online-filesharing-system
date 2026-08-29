@@ -1,47 +1,34 @@
-export default function Page() {
-  return (
-    <main
-      style={{
-        colorScheme: 'light dark',
-        position: 'relative',
-        display: 'flex',
-        minHeight: '100vh',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'light-dark(#fff, #000)',
-        color: 'light-dark(#000, #fff)',
-      }}
-    >
-      <svg
-        aria-hidden="true"
-        style={{ width: 80, height: 80 }}
-        width={80}
-        height={80}
-        fill="none"
-        viewBox="0 0 20 20"
-        xmlns="http://www.w3.org/2000/svg"
-        stroke="currentColor"
-        strokeWidth="0.5"
-      >
-        <path
-          d="M14.2 14.2H17V6.9375C17 4.76288 15.2371 3 13.0625 3H5.8V5.8M14.2 14.2V7.79063L7.79062 14.2H14.2ZM14.2 14.2V17H6.9375C4.76288 17 3 15.2371 3 13.0625V5.8H5.8M5.8 5.8V12.2313L12.2313 5.8H5.8Z"
-          strokeLinejoin="round"
-        />
-      </svg>
-      <p
-        style={{
-          position: 'absolute',
-          left: '50%',
-          top: 'calc(50% + 56px)',
-          transform: 'translateX(-50%)',
-          whiteSpace: 'nowrap',
-          fontSize: '14px',
-          fontWeight: 500,
-          color: 'light-dark(#71717a, #a1a1aa)',
-        }}
-      >
-        Your v0 generation will show here.
-      </p>
-    </main>
-  )
+"use client"
+
+import { useMemo, useState } from "react"
+import { Activity, Bell, ChevronDown, ChevronRight, Cloud, Download, File, FileArchive, FileCode2, FileImage, FileText, Folder, Grid2X2, HelpCircle, Home, LayoutList, Link2, MoreHorizontal, Search, Settings, Share2, ShieldCheck, Upload, Users } from "lucide-react"
+
+type FileKind = "PDF" | "PPTX" | "ZIP" | "PNG" | "JS"
+type SharedFile = { name: string; kind: FileKind; owner: string; updated: string; size: string; shared: string }
+const files: SharedFile[] = [
+  { name: "MCA_Project_Report.pdf", kind: "PDF", owner: "You", updated: "2 hours ago", size: "8.4 MB", shared: "3 people" },
+  { name: "Presentation_Final.pptx", kind: "PPTX", owner: "You", updated: "Yesterday", size: "24.1 MB", shared: "5 people" },
+  { name: "Source_Code.zip", kind: "ZIP", owner: "You", updated: "Aug 24, 2024", size: "42.7 MB", shared: "2 people" },
+  { name: "System_Architecture.png", kind: "PNG", owner: "You", updated: "Aug 22, 2024", size: "3.2 MB", shared: "1 person" },
+  { name: "api-routes.js", kind: "JS", owner: "You", updated: "Aug 18, 2024", size: "18 KB", shared: "4 people" },
+]
+const navItems = [{ label: "Dashboard", icon: Home }, { label: "My Files", icon: Folder }, { label: "Shared with Me", icon: Users }, { label: "Shared by Me", icon: Share2 }, { label: "Recent", icon: Activity }]
+
+function FileIcon({ kind }: { kind: FileKind }) { const Icon = kind === "PDF" ? FileText : kind === "ZIP" ? FileArchive : kind === "PNG" ? FileImage : kind === "JS" ? FileCode2 : File; return <Icon className="file-icon" aria-hidden="true" /> }
+function StatCard({ label, value, meta, icon: Icon }: { label: string; value: string; meta: string; icon: typeof File }) { return <div className="stat-card"><div className="stat-icon"><Icon size={18} /></div><div><span>{label}</span><strong>{value}</strong><small>{meta}</small></div></div> }
+function ActivityRow({ icon: Icon, title, detail, time }: { icon: typeof Upload; title: string; detail: string; time: string }) { return <div className="activity-row"><span className="activity-icon"><Icon size={16} /></span><div><p><strong>{title}</strong> {detail}</p><span>{time}</span></div></div> }
+
+export default function HomePage() {
+  const [query, setQuery] = useState(""); const [view, setView] = useState<"list" | "grid">("list"); const [activeNav, setActiveNav] = useState("Dashboard"); const [notice, setNotice] = useState("")
+  const filteredFiles = useMemo(() => files.filter((file) => file.name.toLowerCase().includes(query.toLowerCase())), [query])
+  function showNotice(message: string) { setNotice(message); window.setTimeout(() => setNotice(""), 2200) }
+  return <main className="app-shell">
+    <aside className="sidebar" aria-label="Primary navigation"><div className="brand"><span className="brand-mark"><Cloud size={19} /></span><span>CloudShare</span></div><nav className="nav-list">{navItems.map(({ label, icon: Icon }) => <button key={label} className={`nav-item ${activeNav === label ? "active" : ""}`} onClick={() => { setActiveNav(label); showNotice(`${label} selected`) }}><Icon size={18} /><span>{label}</span></button>)}</nav><div className="sidebar-spacer" /><div className="storage-card"><div className="storage-heading"><span>Storage</span><span>12%</span></div><div className="progress"><span /></div><p>12.4 GB of 100 GB used</p><button onClick={() => showNotice("Upgrade options opened")}>Upgrade storage <ChevronRight size={14} /></button></div><div className="nav-footer"><button className="nav-item" onClick={() => showNotice("Help center opened")}><HelpCircle size={18} /><span>Help &amp; Support</span></button><button className="nav-item" onClick={() => showNotice("Settings opened")}><Settings size={18} /><span>Settings</span></button><div className="profile"><div className="avatar">AK</div><div><strong>Alex Kumar</strong><span>Free plan</span></div><MoreHorizontal size={18} /></div></div></aside>
+    <section className="workspace"><header className="topbar"><div className="mobile-brand"><span className="brand-mark"><Cloud size={18} /></span>CloudShare</div><div className="crumb"><span>Workspace</span><ChevronRight size={14} /><strong>{activeNav}</strong></div><div className="top-actions"><button className="icon-button" aria-label="Notifications" onClick={() => showNotice("No new notifications")}><Bell size={19} /><i /></button><div className="top-avatar">AK</div><ChevronDown size={16} /></div></header>
+      <div className="content"><div className="welcome-row"><div><p className="eyebrow">Tuesday, August 27, 2024</p><h1>Good morning, Alex</h1><p className="subheading">Here&apos;s what&apos;s happening with your files today.</p></div><button className="primary-button" onClick={() => showNotice("Upload dialog opened")}><Upload size={17} /> Upload files</button></div>
+        <div className="stats-grid"><StatCard label="Total files" value="248" meta="12 this month" icon={File} /><StatCard label="Storage used" value="12.4 GB" meta="of 100 GB" icon={Cloud} /><StatCard label="Shared files" value="36" meta="5 this week" icon={Share2} /><StatCard label="Active shares" value="18" meta="Across 12 files" icon={Link2} /></div>
+        <div className="section-heading"><div><h2>Recent files</h2><p>Your latest uploads and shared files</p></div><div className="section-controls"><button className={`view-button ${view === "list" ? "active" : ""}`} aria-label="List view" onClick={() => setView("list")}><LayoutList size={17} /></button><button className={`view-button ${view === "grid" ? "active" : ""}`} aria-label="Grid view" onClick={() => setView("grid")}><Grid2X2 size={17} /></button><button className="text-button" onClick={() => setActiveNav("My Files")}>View all <ChevronRight size={15} /></button></div></div>
+        <div className="files-card"><div className="table-toolbar"><div className="search-box"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search files" aria-label="Search files" /></div><button className="filter-button">All files <ChevronDown size={15} /></button></div>{view === "list" ? <div className="table-wrap"><table><thead><tr><th>Name</th><th>Owner</th><th>Last modified</th><th>Size</th><th>Shared with</th><th><span className="sr-only">Actions</span></th></tr></thead><tbody>{filteredFiles.map((file) => <tr key={file.name}><td><div className="file-name"><span className={`file-tile ${file.kind.toLowerCase()}`}><FileIcon kind={file.kind} /></span><div><strong>{file.name}</strong><span>{file.kind} file</span></div></div></td><td>{file.owner}</td><td>{file.updated}</td><td>{file.size}</td><td><span className="shared-pill"><Users size={13} />{file.shared}</span></td><td><button className="row-action" aria-label={`More actions for ${file.name}`} onClick={() => showNotice(`Actions for ${file.name}`)}><MoreHorizontal size={18} /></button></td></tr>)}</tbody></table>{filteredFiles.length === 0 && <div className="empty-state">No files match your search.</div>}</div> : <div className="file-grid">{filteredFiles.map((file) => <button className="grid-file" key={file.name} onClick={() => showNotice(`${file.name} selected`)}><span className={`file-tile ${file.kind.toLowerCase()}`}><FileIcon kind={file.kind} /></span><strong>{file.name}</strong><span>{file.size} · {file.updated}</span></button>)}</div>}</div>
+        <div className="lower-grid"><section className="activity-card"><div className="card-heading"><div><h2>Recent activity</h2><p>Updates across your workspace</p></div><button className="text-button" onClick={() => showNotice("Activity history opened")}>View history <ChevronRight size={15} /></button></div><ActivityRow icon={Upload} title="You uploaded" detail="MCA_Project_Report.pdf" time="2 hours ago" /><ActivityRow icon={Share2} title="You shared" detail="Presentation_Final.pptx with Priya Shah" time="Yesterday" /><ActivityRow icon={Download} title="Rahul Mehta downloaded" detail="Source_Code.zip" time="Aug 24" /></section><section className="security-card"><div className="security-icon"><ShieldCheck size={20} /></div><div><h2>Your files are secure</h2><p>Protected with encryption in transit and at rest.</p><button className="text-button" onClick={() => showNotice("Security details opened")}>Learn about security <ChevronRight size={15} /></button></div></section></div></div></section>{notice && <div className="toast" role="status">{notice}</div>}
+  </main>
 }
